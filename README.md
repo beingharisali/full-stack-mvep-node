@@ -33,6 +33,7 @@ JWT_LIFETIME=1d
 - CORS support
 - Role-based user system (Admin, Vendor, Customer)
 - Profile fields specific to each role
+- Product model with name, price, stock, and images fields
 
 ## API Routes
 
