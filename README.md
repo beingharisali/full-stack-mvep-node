@@ -31,9 +31,19 @@ JWT_LIFETIME=1d
 - Security middleware (helmet, xss-clean, rate limiting)
 - Error handling
 - CORS support
+- Role-based user system (Admin, Vendor, Customer)
+- Profile fields specific to each role
 
 ## API Routes
 
 - `GET /health` - Health check endpoint
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/login` - User login
+
+## User Roles
+
+The application supports three user roles:
+
+- **Admin**: Full access with permissions system
+- **Vendor**: Business-specific fields and capabilities
+- **Customer**: Standard user with basic profile
