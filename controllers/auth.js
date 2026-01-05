@@ -1,76 +1,76 @@
-const { StatusCodes } = require('http-status-codes')
-const { BadRequestError, UnauthenticatedError } = require('../errors')
-const User = require('../models/User')
+const User = require("../models/User");
+const { BadRequestError, UnauthenticatedError } = require("../errors");
+const { StatusCodes } = require("http-status-codes");
 
 /**
- * REGISTER / SIGNUP
+ * REGISTER
  */
 const register = async (req, res) => {
-    const { firstName, lastName, email, password, role } = req.body
+  const { firstName, lastName, email, password, role } = req.body;
 
-    // validation
-    if (!firstName || !lastName || !email || !password) {
-        throw new BadRequestError('Please provide all values')
-    }
+  if (!firstName || !lastName || !email || !password) {
+    throw new BadRequestError("Please provide all values");
+  }
 
-    // create user
-    const user = await User.create({
-        firstName,
-        lastName,
-        email,
-        password,
-        role
-    })
+  const userAlreadyExists = await User.findOne({ email });
+  if (userAlreadyExists) {
+    throw new BadRequestError("Email already in use");
+  }
 
-    // create token
-    const token = user.createJWT()
+  const user = await User.create({
+    firstName,
+    lastName,
+    email,
+    password,
+    role, // admin | vendor | customer
+  });
 
-    // response
-    res.status(StatusCodes.CREATED).json({
-        user: {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role
-        },
-        token
-    })
-}
+  const token = user.createJWT();
+
+  res.status(StatusCodes.CREATED).json({
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+    },
+    token,
+  });
+};
 
 /**
  * LOGIN
  */
 const login = async (req, res) => {
-    const { email, password } = req.body
+ 
 
-    if (!email || !password) {
-        throw new BadRequestError('Please provide email and password')
-    }
+  const { email, password } = req.body;
 
-    const user = await User.findOne({ email })
-    if (!user) {
-        throw new UnauthenticatedError('Invalid Credentials')
-    }
+  if (!email || !password) {
+    throw new BadRequestError("Please provide email and password");
+  }
 
-    const isPasswordCorrect = await user.comparePassword(password)
-    if (!isPasswordCorrect) {
-        throw new UnauthenticatedError('Invalid Credentials')
-    }
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new UnauthenticatedError("Invalid Email");
+  }
 
-    const token = user.createJWT()
+  const isPasswordCorrect = await user.comparePassword(password);
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError("Invalid Paswsword");
+  }
 
-    res.status(StatusCodes.OK).json({
-        user: {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role
-        },
-        token
-    })
-}
+  const token = user.createJWT();
 
-module.exports = {
-    register,
-    login
-}
+  res.status(StatusCodes.OK).json({
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+    },
+    token,
+  });
+};
+
+module.exports = { register, login };
