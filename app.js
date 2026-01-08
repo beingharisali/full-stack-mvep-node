@@ -10,7 +10,8 @@ const rateLimiter = require('express-rate-limit')
 
 const connectDB = require('./db/connect')
 
-const authRouter = require('./routes/auth')
+const authRouter = require('./routes/auth');
+const productsRouter = require('./routes/products');
 
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/products", productsRouter)
 
 
 app.use(notFoundMiddleware);
