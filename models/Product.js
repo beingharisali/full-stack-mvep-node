@@ -10,7 +10,18 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: [true, 'Product price is required'],
-        min: [0, 'Price must be a positive number']
+        min: [0, 'Price must be a positive number'],
+        validate: {
+            validator: function(price) {
+                const priceStr = price.toString();
+                const decimalParts = priceStr.split('.');
+                if (decimalParts.length > 1) {
+                    return decimalParts[1].length <= 2;
+                }
+                return true;
+            },
+            message: 'Price can have maximum 2 decimal places'
+        }
     },
     stock: {
         type: Number,
@@ -38,17 +49,39 @@ const productSchema = new mongoose.Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: [1000, 'Product description cannot exceed 1000 characters']
+        maxlength: [1000, 'Product description cannot exceed 1000 characters'],
+        validate: {
+            validator: function(description) {
+                if (!description) return true; 
+                const specialCharCount = (description.match(/[<>{}\[\]|;~`]/g) || []).length;
+                return specialCharCount < 5; 
+            },
+            message: 'Description contains too many special characters'
+        }
     },
     category: {
         type: String,
         trim: true,
-        maxlength: [100, 'Category name cannot exceed 100 characters']
+        maxlength: [100, 'Category name cannot exceed 100 characters'],
+        validate: {
+            validator: function(category) {
+                if (!category) return true; 
+                return /^[a-zA-Z0-9\s\-]+$/.test(category);
+            },
+            message: 'Category name can only contain letters, numbers, spaces, and hyphens'
+        }
     },
     brand: {
         type: String,
         trim: true,
-        maxlength: [100, 'Brand name cannot exceed 100 characters']
+        maxlength: [100, 'Brand name cannot exceed 100 characters'],
+        validate: {
+            validator: function(brand) {
+                if (!brand) return true; 
+                return /^[a-zA-Z0-9\s\-&]+$/.test(brand);
+            },
+            message: 'Brand name can only contain letters, numbers, spaces, hyphens, and ampersands'
+        }
     },
     isActive: {
         type: Boolean,
