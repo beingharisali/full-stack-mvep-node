@@ -18,16 +18,25 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Please provide email'],
-        match: [
-            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-            'Please provide a valid email',
-        ],
         unique: true,
+        trim: true,
+        lowercase: true,
+        match: [
+            /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+            'Please provide a valid email address',
+        ],
+        maxlength: [100, 'Email address cannot exceed 100 characters']
     },
     password: {
         type: String,
         required: [true, 'Please provide password'],
-        minlength: 6
+        minlength: [6, 'Password must be at least 6 characters long'],
+        validate: {
+            validator: function(password) {
+                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{6,}$/.test(password);
+            },
+            message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+        }
     },
      role:{
         type:String,
@@ -37,12 +46,42 @@ const UserSchema = new mongoose.Schema({
     profile: {
         businessName: { type: String },
         businessAddress: { type: String },
-        businessPhone: { type: String },
-        businessLicense: { type: String },
+            businessPhone: { 
+                type: String,
+                validate: {
+                    validator: function(phone) {
+                        if (!phone) return true; 
+                        return /^\+?\d{10,15}$/.test(phone);
+                    },
+                    message: 'Please provide a valid business phone number (10-15 digits)'
+                }
+            },
+            businessLicense: { 
+                type: String,
+                maxlength: [100, 'Business license number cannot exceed 100 characters']
+            },
         permissions: [{ type: String }],
-        phone: { type: String },
+            phone: { 
+                type: String,
+                validate: {
+                    validator: function(phone) {
+                        if (!phone) return true; 
+                        return /^\+?\d{10,15}$/.test(phone);
+                    },
+                    message: 'Please provide a valid phone number (10-15 digits)'
+                }
+            },
         address: { type: String },
-        avatar: { type: String },
+            avatar: { 
+                type: String,
+                validate: {
+                    validator: function(avatar) {
+                        if (!avatar) return true; 
+                        return /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(avatar);
+                    },
+                    message: 'Please provide a valid image URL for avatar'
+                }
+            },
         dateOfBirth: { type: Date },
         isActive: { type: Boolean, default: true }
     }
