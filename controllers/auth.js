@@ -12,7 +12,33 @@ const register = async (req, res, next) => {
     if (!firstName || !lastName || !email || !password) {
       throw new BadRequestError("Please provide all values");
     }
-  
+    
+    if (firstName.length < 2 || firstName.length > 50) {
+      throw new BadRequestError("First name must be between 2 and 50 characters");
+    }
+    
+    if (lastName.length < 2 || lastName.length > 50) {
+      throw new BadRequestError("Last name must be between 2 and 50 characters");
+    }
+    
+    const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!emailRegex.test(email)) {
+      throw new BadRequestError("Please provide a valid email address");
+    }
+    
+    if (email.length > 100) {
+      throw new BadRequestError("Email address cannot exceed 100 characters");
+    }
+    
+    if (password.length < 6) {
+      throw new BadRequestError("Password must be at least 6 characters long");
+    }
+    
+    const validRoles = ['admin', 'vendor', 'customer'];
+    if (role && !validRoles.includes(role)) {
+      throw new BadRequestError("Invalid role. Must be admin, vendor, or customer");
+    }
+    
     const userAlreadyExists = await User.findOne({ email });
     if (userAlreadyExists) {
       throw new BadRequestError("Email already in use");
@@ -23,7 +49,7 @@ const register = async (req, res, next) => {
       lastName,
       email,
       password,
-      role, // admin | vendor | customer
+      role, 
     });
   
     const token = user.createJWT();
@@ -38,12 +64,10 @@ const register = async (req, res, next) => {
       token,
     });
   } catch (error) {
-    // Handle duplicate email error
     if (error.code === 11000) {
       return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Email already exists. Please use a different email address.' });
     }
     
-    // Pass other errors to the error handling middleware
     next(error);
   }
 };
