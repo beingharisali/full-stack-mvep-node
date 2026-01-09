@@ -42,10 +42,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Routes
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/products", productsRouter);
-
 const auth = require('./middleware/authentication');
 
 // Error Middlewares
