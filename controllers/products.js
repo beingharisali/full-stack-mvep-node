@@ -108,7 +108,7 @@ const getSingleProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
-    const product = await Product.findOne({ _id: productId });
+    const product = await Product.findById(productId);
     if (!product) {
       throw new NotFoundError(`No product with id: ${productId}`);
     }
