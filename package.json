@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is a complete Express.js backend with MongoDB connection using Mongoose.",
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
