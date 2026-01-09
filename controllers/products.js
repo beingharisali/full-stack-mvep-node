@@ -19,15 +19,30 @@ const createProduct = async (req, res, next) => {
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const { name, category, sort, fields, numericFilters } = req.query;
+    const { name, category, brand, minPrice, maxPrice, sort, fields, numericFilters } = req.query;
     
     const queryObject = {};
 
     if (name) {
       queryObject.name = { $regex: name, $options: 'i' };
     }
+    
     if (category) {
       queryObject.category = { $regex: category, $options: 'i' };
+    }
+    
+    if (brand) {
+      queryObject.brand = { $regex: brand, $options: 'i' };
+    }
+    
+    if (minPrice || maxPrice) {
+      queryObject.price = {};
+      if (minPrice) {
+        queryObject.price.$gte = Number(minPrice);
+      }
+      if (maxPrice) {
+        queryObject.price.$lte = Number(maxPrice);
+      }
     }
 
     let result = Product.find(queryObject);
@@ -49,7 +64,8 @@ const getAllProducts = async (req, res, next) => {
       filters.forEach((item) => {
         const [field, operator, value] = item.split('-');
         if (options.includes(field)) {
-          queryObject[field] = { [operator]: Number(value) };
+          if (!queryObject[field]) queryObject[field] = {};
+          queryObject[field][operator] = Number(value);
         }
       });
     }
@@ -66,7 +82,6 @@ const getAllProducts = async (req, res, next) => {
       result = result.select(fieldsList);
     }
 
-    
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -74,7 +89,16 @@ const getAllProducts = async (req, res, next) => {
     result = result.skip(skip).limit(limit);
 
     const products = await result;
-    res.status(StatusCodes.OK).json({ products, nbHits: products.length });
+    
+    const totalProducts = await Product.countDocuments(queryObject);
+    
+    res.status(StatusCodes.OK).json({ 
+      products, 
+      nbHits: products.length,
+      totalProducts,
+      totalPages: Math.ceil(totalProducts / limit),
+      currentPage: page
+    });
   } catch (error) {
     next(error);
   }
