@@ -122,8 +122,14 @@ const getSingleProduct = async (req, res, next) => {
 const updateProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
-  
-    const product = await Product.findByIdAndUpdate({ _id: productId }, req.body, {
+    
+    const updateData = { ...req.body };
+    
+    if (updateData.price !== undefined) {
+      updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
+    }
+    
+    const product = await Product.findByIdAndUpdate({ _id: productId }, updateData, {
       new: true,
       runValidators: true,
     });
