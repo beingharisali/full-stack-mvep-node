@@ -9,7 +9,6 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     msg: err.message || "Something went wrong, try again later",
   };
 
-  // Custom API Errors (BadRequest, Unauthenticated etc)
   if (err instanceof CustomAPIError) {
     return res.status(err.statusCode).json({
       success: false,
@@ -17,7 +16,6 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     });
   }
 
-  // Mongoose Validation Error
   if (err.name === "ValidationError") {
     customError.msg = Object.values(err.errors)
       .map((item) => item.message)
@@ -25,7 +23,6 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     customError.statusCode = StatusCodes.BAD_REQUEST;
   }
 
-  // Duplicate Key Error (email already exists)
   if (err.code === 11000) {
     customError.msg = `Duplicate value entered for ${Object.keys(
       err.keyValue
@@ -33,7 +30,6 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     customError.statusCode = StatusCodes.BAD_REQUEST;
   }
 
-  // Invalid MongoDB ObjectId
   if (err.name === "CastError") {
     customError.msg = `No item found with id: ${err.value}`;
     customError.statusCode = StatusCodes.NOT_FOUND;

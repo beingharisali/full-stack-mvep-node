@@ -1,4 +1,4 @@
-require("express-async-errors");   // MUST be first
+require("express-async-errors");   
 require("dotenv").config({ path: "./.env" });
 
 const express = require("express");
