@@ -25,26 +25,7 @@ const UserSchema = new mongoose.Schema({
         enum: ['admin', 'vendor', 'customer'],
         default: 'customer'
     },
-    // profile: {
-    //     businessName: { type: String },
-    //     businessAddress: { type: String },
-    //         businessPhone: { 
-    //             type: String
-    //         },
-    //         businessLicense: { 
-    //             type: String
-    //         },
-    //     permissions: [{ type: String }],
-    //         phone: { 
-    //             type: String
-    //         },
-    //     address: { type: String },
-    //         avatar: { 
-    //             type: String
-    //         },
-    //     dateOfBirth: { type: Date },
-    //     isActive: { type: Boolean, default: true }
-    // }
+    
 },{
     timestamps:true
 })
