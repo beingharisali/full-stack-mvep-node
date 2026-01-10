@@ -2,9 +2,7 @@ const User = require("../models/User");
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 const { StatusCodes } = require("http-status-codes");
 
-/**
- * REGISTER
- */
+
 const register = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
@@ -72,9 +70,7 @@ const register = async (req, res, next) => {
   }
 };
 
-/**
- * LOGIN
- */
+
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
