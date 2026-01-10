@@ -34,7 +34,6 @@ app.use(
 app.use(helmet());
 app.use(xss());
 
-// Health Check
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
