@@ -43,7 +43,6 @@ app.get("/", (req, res) => {
 
 const auth = require('./middleware/authentication');
 
-// Error Middlewares
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
