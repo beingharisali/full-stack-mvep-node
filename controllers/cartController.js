@@ -27,3 +27,16 @@ exports.addToCart = async (req, res) => {
         res.status(500).json({ error: error.message})
     }
 }
+exports.removeFromCart = async (req, res) => {
+    try{
+        const { productId } = req.params;
+        const cart = await Cart.findOne({ user: req.user.id})
+        cart.items = cart.items.filter(
+            item => item.product.toString() !== productId
+        );
+        await cart.save();
+        res.json(cart);
+    } catch (error){
+        res.status(500).json({ error: error.message });
+    }
+ };
