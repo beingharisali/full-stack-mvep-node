@@ -58,8 +58,20 @@ res.status(404).json({ msg: "Item not found"});
         res.status(500).json({error: error.message})
     }
  }
+ const clearCart = async (req, res) => {
+    try {
+          await Cart.findOneandUpdate(
+            {  user: req.user.id },
+            {items: [] }
+    )
+    res.json({msg: "Cart cleared"});
+} catch (error) {
+    res.status(500).json({ error: error.message});
+    }
+ };
  exports.module = { 
     addCart,
     removeCart,
-    updateCartItem
-  }
+    updateCartItem,
+    clearCart
+  };
