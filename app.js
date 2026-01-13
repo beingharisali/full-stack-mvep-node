@@ -16,14 +16,14 @@ const productsRouter = require('./routes/products');
 
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
-
+const cartRouter = require('./routes/cart');
 
 app.use(cors());
 app.use(express.json());
 
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/products", productsRouter)
-
+app.use("/api/v1/cart", cartRouter)
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
