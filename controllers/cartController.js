@@ -1,11 +1,11 @@
 const Cart = require('../models/Cart');
 
 // create cart
-exports.addToCart = async (req, res) => {
+const addCart = async (req, res) => {
     try{
         const { productId, quantity} = req.body;
         const userId = req.user.id;
-        let cart = await cart.findOne({ user: userId})
+        let cart = await Cart.findOne({ user: userId})
         if (!cart){
             cart = new Cart({
                 user: userId,
@@ -27,7 +27,7 @@ exports.addToCart = async (req, res) => {
         res.status(500).json({ error: error.message})
     }
 }
-exports.removeFromCart = async (req, res) => {
+const removeCart = async (req, res) => {
     try{
         const { productId } = req.params;
         const cart = await Cart.findOne({ user: req.user.id})
@@ -40,3 +40,26 @@ exports.removeFromCart = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
  };
+ const updateCartItem =  async (req, res) => {
+    try { 
+        const { productId, quantity } = req.body;
+    const cart = await cart.findOne({ user: res.user.id})
+const itemIndex = cart.items.find(
+    i => i.product.toString() === productId
+);
+if (!item) 
+return 
+res.status(404).json({ msg: "Item not found"});
+ item.quantity = quantity;
+ await cart.save();
+ res.json(cart);
+
+    } catch (error) {
+        res.status(500).json({error: error.message})
+    }
+ }
+ exports.module = { 
+    addCart,
+    removeCart,
+    updateCartItem
+  }
