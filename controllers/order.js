@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const Cart = require("../models/Cart")
 const getOrders = async (req, res ) => {
     try{
         const order = await Order.find({ user: req.user.id })
@@ -44,4 +45,26 @@ const deleteOrder = async (req, res) => {
         res.status(500).json({ error: error.message})
     }
 }
-module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder}
+const createOrder = async(req, res) => {
+    try{
+        const cart = await Cart.findOne({ user: req.user.id})
+        if(!cart || cart.items.length === 0)
+            return 
+        res.status(400).json({ msg: "Cart is empty"});
+            const total = cart.items.reduce((sum, item) => {
+                return sum + item.quantity;
+    }, 0);
+            const order = await order.create({
+                user: req.user.id,
+                items: cart.items,
+                totalAmount: total
+            });
+            cart.items = [];
+            await cart.save();
+            res.status(201).json(order);
+    } catch (error){
+        res.status(500).json({ error: error.message})
+    }
+}
+
+module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder, createOrder}
