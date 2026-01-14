@@ -36,4 +36,12 @@ const updateOrder = async (req,res) => {
 res.status(500).json({ error: error.message})
 }
 }
-module.exports = {getOrders, getSingleOrder}
+const deleteOrder = async (req, res) => {
+    try{
+         await Order.findByIdAndDelete(req.params.id);
+         res.json({ msg: "Order deleted Successfully"})
+    }catch (error){
+        res.status(500).json({ error: error.message})
+    }
+}
+module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder}
