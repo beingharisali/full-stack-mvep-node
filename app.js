@@ -13,7 +13,7 @@ const connectDB = require("./db/connect");
 
 const authRouter = require('./routes/auth');
 const productsRouter = require('./routes/products');
-
+const orderRouter = require('./routes/order')
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 const cartRouter = require('./routes/cart');
@@ -24,6 +24,7 @@ app.use(express.json());
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/products", productsRouter)
 app.use("/api/v1/cart", cartRouter)
+app.use("/api/v1/order", orderRouter)
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
