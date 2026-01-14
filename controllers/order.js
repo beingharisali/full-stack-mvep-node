@@ -21,4 +21,19 @@ const getSingleOrder = async (req, res) => {
 res.status(500).json({error:error.message});
     }
 };
+const updateOrder = async (req,res) => {
+    try {
+    const order = await Order.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
+    );
+    if(!order) 
+        retutn 
+    res.status(404).json({ msg: "Order not found"});
+    res.json(order);
+} catch (error) {
+res.status(500).json({ error: error.message})
+}
+}
 module.exports = {getOrders, getSingleOrder}
