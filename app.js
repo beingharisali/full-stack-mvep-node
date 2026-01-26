@@ -1,6 +1,14 @@
 require("express-async-errors");   
 require("dotenv").config({ path: "./.env" });
 
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'JWT_LIFETIME', 'PORT'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars);
+  process.exit(1);
+}
+
 const express = require("express");
 const cors = require("cors");
 const app = express();

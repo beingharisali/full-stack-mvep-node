@@ -52,7 +52,7 @@ console.log(JSON.stringify(enhancedOrderResponse, null, 2));
 console.log('\n📊 Status Summary Response:');
 console.log('==========================');
 const statusSummary = {
-    orders: [enhancedOrderResponse], /
+    orders: [enhancedOrderResponse], 
     totalCount: 1,
     statusSummary: {
         pending: 0,
