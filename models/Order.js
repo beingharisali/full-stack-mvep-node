@@ -17,7 +17,7 @@ const statusHistorySchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ["pending", "delivered"]
+        enum: ["pending", "processing", "shipped", "delivered", "cancelled"]
     },
     timestamp: {
         type: Date,
