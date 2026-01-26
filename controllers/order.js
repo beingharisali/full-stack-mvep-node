@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart")
+
 const getOrders = async (req, res ) => {
     try{
         const order = await Order.find({ user: req.user.userId })
@@ -9,6 +10,7 @@ const getOrders = async (req, res ) => {
         res.status(500).json({ error: error.message});
     }
 }
+
 const getSingleOrder = async (req, res) => {
     try{
         const order = await Order.findById(req.params.id)
@@ -21,6 +23,7 @@ const getSingleOrder = async (req, res) => {
 res.status(500).json({error:error.message});
     }
 };
+
 const updateOrder = async (req,res) => {
     try {
     const order = await Order.findByIdAndUpdate(
@@ -37,7 +40,7 @@ res.status(500).json({ error: error.message})
 }
 }
 
-// Create a specific function to update order status
+// Create a specific function to update order status with timestamp tracking
 const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
@@ -48,22 +51,39 @@ const updateOrderStatus = async (req, res) => {
         }
         
         // Check if status is valid
-        const validStatuses = ['pending','delivered', ];
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ msg: "Invalid status. Valid statuses are: pending, processing, shipped, delivered, cancelled" });
         }
         
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true, runValidators: true }
-        );
-        
+        // Find the order first to check current status
+        const order = await Order.findById(req.params.id);
         if (!order) {
             return res.status(404).json({ msg: "Order not found" });
         }
         
-        res.json({ msg: "Order status updated successfully", order });
+        // If status is the same, don't update
+        if (order.status === status) {
+            return res.status(200).json({ msg: "Status unchanged", order });
+        }
+        
+        // Update the order with new status and add to status history
+        const updatedOrder = await Order.findByIdAndUpdate(
+            req.params.id,
+            {
+                status,
+                $push: {
+                    statusHistory: {
+                        status,
+                        timestamp: new Date(),
+                        updatedBy: req.user.userId
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        ).populate("items.product");
+        
+        res.json({ msg: "Order status updated successfully", order: updatedOrder });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -77,26 +97,7 @@ const deleteOrder = async (req, res) => {
         res.status(500).json({ error: error.message})
     }
 }
-// const createOrder = async(req, res) => {
-//     try{
-//         const cart = await Cart.findOne({ user: req.user.userId})
-//         if(!cart || cart.items.length === 0){
-//             return  res.status(400).json({ msg: "Cart is empty"});}
-//             const total = cart.items.reduce((sum, item) => {
-//                 return sum + item.quantity;
-//     }, 0);
-//             const order = await order.create({
-//                 user: req.user.id,
-//                 items: cart.items,
-//                 totalAmount: total
-//             });
-//             cart.items = [];
-//             await cart.save();
-//             res.status(201).json(order);
-//     } catch (error){
-//         res.status(500).json({ error: error.message})
-//     }
-// }
+
 const createOrder = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user.userId });
@@ -113,7 +114,12 @@ const createOrder = async (req, res) => {
     const order = await Order.create({
       user: req.user.userId,
       items: cart.items,
-      totalAmount: total
+      totalAmount: total,
+      statusHistory: [{
+        status: 'pending',
+        timestamp: new Date(),
+        updatedBy: req.user.userId
+      }]
     });
 
     // clear cart
@@ -126,6 +132,5 @@ const createOrder = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus}
