@@ -29,13 +29,46 @@ const updateOrder = async (req,res) => {
         { new: true, runValidators: true }
     );
     if(!order){ 
-        retutn 
+        return 
     res.status(404).json({ msg: "Order not found"});}
     res.json(order);
 } catch (error) {
 res.status(500).json({ error: error.message})
 }
 }
+
+// Create a specific function to update order status
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        
+        // Validate status
+        if (!status) {
+            return res.status(400).json({ msg: "Status is required" });
+        }
+        
+        // Check if status is valid
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ msg: "Invalid status. Valid statuses are: pending, processing, shipped, delivered, cancelled" });
+        }
+        
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true, runValidators: true }
+        );
+        
+        if (!order) {
+            return res.status(404).json({ msg: "Order not found" });
+        }
+        
+        res.json({ msg: "Order status updated successfully", order });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
 const deleteOrder = async (req, res) => {
     try{
          await Order.findByIdAndDelete(req.params.id);
@@ -95,4 +128,4 @@ const createOrder = async (req, res) => {
 };
 
 
-module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder, createOrder}
+module.exports = {getOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus}
