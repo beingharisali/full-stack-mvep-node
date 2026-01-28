@@ -40,4 +40,12 @@ const createSubCategory = async (req, res) => {
     res.status(500).json({ error: error.message });
     }
 }
-module.exports = { createCategory, createSubCategory }
+const getCategories = async (req, res) => {
+    const categories = await Category.find().lean();
+    const subcategories = await Subcategory.find();
+    res.json({
+        categories,
+        subcategories
+    })
+}
+module.exports = { createCategory, createSubCategory, getCategories }
