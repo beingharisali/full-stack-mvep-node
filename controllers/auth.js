@@ -73,7 +73,7 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
   
     if (!email || !password) {
       throw new BadRequestError("Please provide email and password");
@@ -87,6 +87,10 @@ const login = async (req, res, next) => {
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
       throw new UnauthenticatedError("Invalid Password");
+    }
+  
+    if (role && user.role !== role) {
+      throw new UnauthenticatedError("Wrong credentials");
     }
   
     const token = user.createJWT();
