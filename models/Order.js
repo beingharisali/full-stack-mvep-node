@@ -45,6 +45,10 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
     default: "pending"
    }
+}, { timestamps: true })
+orderSchema.index({ createdAt: 1 });
+orderSchema.index({ "items.product": 1 });
+orderSchema.index({ user: 1 });
 }, { timestamps: true });
    },
    statusHistory: [statusHistorySchema]
