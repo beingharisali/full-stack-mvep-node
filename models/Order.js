@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+
 const orderItemSchema = new mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
@@ -11,6 +12,23 @@ const orderItemSchema = new mongoose.Schema({
         min: 1
     },
 })
+
+const statusHistorySchema = new mongoose.Schema({
+    status: {
+        type: String,
+        required: true,
+        enum: ["pending", "processing", "shipped", "delivered", "cancelled"]
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
+})
+
 const orderSchema = new mongoose.Schema({
    user:{
     type: mongoose.Schema.Types.ObjectId,
@@ -24,7 +42,7 @@ const orderSchema = new mongoose.Schema({
    },
    status: {
     type: String,
-    enum: ["pending", "paid", "shipped", "delivered"],
+    enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
     default: "pending"
    }
 }, { timestamps: true })
