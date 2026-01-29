@@ -28,6 +28,7 @@ const cartRouter = require('./routes/cart');
 const categoryRoutes = require('./routes/category')
 const totalSales = require('./routes/totalSales')
 const totalRevenue = require('./routes/totalRevenue')
+const date = require('./routes/date')
 app.use(cors());
 app.use(express.json());
 
@@ -38,6 +39,7 @@ app.use("/api/v1/order", orderRouter)
 app.use("/api/v1", categoryRoutes )
 app.use("/api/v1", totalSales )
 app.use("/api/v1", totalRevenue)
+app.use("/api/v1/date", date)
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
