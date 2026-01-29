@@ -1,7 +1,7 @@
 const Order = require('../models/Order');
 const totalRevenue = async (req, res) => {
     try {
-        const result = await Order.aggregate([
+        const  revenueData = await Order.aggregate([
             {
                 $group:{
                     _id:null,
@@ -11,9 +11,9 @@ const totalRevenue = async (req, res) => {
                 }
             }
         ]);
-        res.json({ totalRevenue: result[0]?.revenue || 0 });
+        res.json({ totalRevenue:  revenueData[0]?.revenue || 0 });
     } catch (error) {
-        res.status(500).json({ error: 'error.messsage'})
+        res.status(500).json({ error: error.message})
     }
 }
 module.exports = { totalRevenue }
