@@ -41,10 +41,14 @@ const createProduct = async (req, res, next) => {
     }
     
     if (images && images.length > 0) {
-      const imageRegex = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp)$/i;
       for (const imageUrl of images) {
-        if (typeof imageUrl !== 'string' || !imageRegex.test(imageUrl)) {
-          throw new BadRequestError("Each image must be a valid image URL with supported extension (jpg, jpeg, png, gif, webp, bmp)");
+        if (typeof imageUrl !== 'string' || !imageUrl.trim()) {
+          throw new BadRequestError("Each image must be a valid URL");
+        }
+        try {
+          new URL(imageUrl);
+        } catch (e) {
+          throw new BadRequestError("Each image must be a valid URL");
         }
       }
     }
@@ -173,6 +177,11 @@ const getSingleProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
+    // Prevent matching 'admin' as a product ID
+    if (productId === 'admin') {
+      return res.status(404).json({ success: false, msg: 'Route not found' });
+    }
+  
     const product = await Product.findById(productId);
     if (!product) {
       throw new NotFoundError(`No product with id: ${productId}`);
@@ -216,10 +225,14 @@ const updateProduct = async (req, res, next) => {
     }
     
     if (images && images.length > 0) {
-      const imageRegex = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp)$/i;
       for (const imageUrl of images) {
-        if (typeof imageUrl !== 'string' || !imageRegex.test(imageUrl)) {
-          throw new BadRequestError("Each image must be a valid image URL with supported extension (jpg, jpeg, png, gif, webp, bmp)");
+        if (typeof imageUrl !== 'string' || !imageUrl.trim()) {
+          throw new BadRequestError("Each image must be a valid URL");
+        }
+        try {
+          new URL(imageUrl);
+        } catch (e) {
+          throw new BadRequestError("Each image must be a valid URL");
         }
       }
     }
