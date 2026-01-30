@@ -44,14 +44,12 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
     default: "pending"
-   }
-}, { timestamps: true })
+   },
+   statusHistory: [statusHistorySchema]
+}, { timestamps: true });
+
 orderSchema.index({ createdAt: 1 });
 orderSchema.index({ "items.product": 1 });
 orderSchema.index({ user: 1 });
-}, { timestamps: true });
-   },
-   statusHistory: [statusHistorySchema]
-}, {timestamps: true});
 
 module.exports = mongoose.model("Order", orderSchema)
