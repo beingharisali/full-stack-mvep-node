@@ -1,7 +1,6 @@
 
 const Cart = require('../models/Cart');
 
-// create or add to cart
 const addCart = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
@@ -33,7 +32,6 @@ const addCart = async (req, res) => {
     }
 };
 
-// remove a single item
 const removeCart = async (req, res) => {
     try {
         const { productId } = req.params;
@@ -51,11 +49,10 @@ const removeCart = async (req, res) => {
     }
 };
 
-// update item quantity
 const updateCartItem = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
-        const cart = await Cart.findOne({ user: req.user.userId }); //  fixed
+        const cart = await Cart.findOne({ user: req.user.userId }); 
         if (!cart) return res.status(404).json({ msg: "Cart not found" });
 
         const item = cart.items.find(i => i.product.toString() === productId);
@@ -70,7 +67,6 @@ const updateCartItem = async (req, res) => {
     }
 };
 
-// clear cart
 const clearCart = async (req, res) => {
     try {
         await Cart.findOneAndUpdate(

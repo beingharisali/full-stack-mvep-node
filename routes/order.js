@@ -14,7 +14,7 @@ const {
 
  router.post("/create",authentication, createOrder);
  router.get("/get", authentication, getOrders);
- router.get("/get-all", authentication, authorize("admin"), getAllOrders); // Admin only
+ router.get("/get-all", authentication, authorize("admin"), getAllOrders); 
  router.get("/single/:id",authentication, getSingleOrder);
  router.put("/update/:id",authentication, updateOrder);
  router.put("/update-status/:id", authentication, updateOrderStatus); 
