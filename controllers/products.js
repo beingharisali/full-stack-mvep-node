@@ -177,11 +177,6 @@ const getSingleProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
-    // Prevent matching 'admin' as a product ID
-    if (productId === 'admin') {
-      return res.status(404).json({ success: false, msg: 'Route not found' });
-    }
-  
     const product = await Product.findById(productId);
     if (!product) {
       throw new NotFoundError(`No product with id: ${productId}`);

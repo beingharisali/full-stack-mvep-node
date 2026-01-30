@@ -12,6 +12,7 @@ const {
 } = require('../controllers/products');
 
 router.get('/', getAllProducts);
+router.get('/admin', authentication, authorize('admin'), getAllProducts);
 router.get('/:id', getSingleProduct);
 
 router.post('/admin', authentication, authorize('admin'), createProduct);
