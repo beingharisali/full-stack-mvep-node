@@ -9,7 +9,6 @@ const getOrders = async (req, res ) => {
             .populate("user", "firstName lastName email")
             .sort({ createdAt: -1 });
         
-        // Enhance response with status information
         const enhancedOrders = orders.map(order => ({
             _id: order._id,
             user: order.user,
@@ -19,7 +18,6 @@ const getOrders = async (req, res ) => {
             statusHistory: order.statusHistory,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
-            // Add status metadata
             statusInfo: {
                 currentStatus: order.status,
                 lastUpdated: order.statusHistory.length > 0 
@@ -42,7 +40,6 @@ const getAllOrders = async (req, res) => {
             .populate("user", "firstName lastName email role")
             .sort({ createdAt: -1 });
         
-        // Enhance response with comprehensive status information
         const enhancedOrders = orders.map(order => ({
             _id: order._id,
             user: {
@@ -69,7 +66,6 @@ const getAllOrders = async (req, res) => {
             })),
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
-            // Enhanced status metadata
             statusInfo: {
                 currentStatus: order.status,
                 statusDisplay: getStatusDisplayName(order.status),
@@ -91,7 +87,6 @@ const getAllOrders = async (req, res) => {
     }
 }
 
-// Helper function to get display name for status
 const getStatusDisplayName = (status) => {
     const statusMap = {
         'pending': 'Pending',
@@ -103,13 +98,11 @@ const getStatusDisplayName = (status) => {
     return statusMap[status] || status;
 };
 
-// Helper function to check if update is recent (within 24 hours)
 const isRecentUpdate = (updatedAt) => {
     const oneDay = 24 * 60 * 60 * 1000;
     return (Date.now() - new Date(updatedAt).getTime()) < oneDay;
 };
 
-// Helper function to get status summary
 const getStatusSummary = (orders) => {
     const summary = {
         pending: 0,
@@ -139,7 +132,6 @@ const getSingleOrder = async (req, res) => {
             return res.status(404).json({ msg: "Order not found"});
         }
         
-        // Enhance single order response
         const enhancedOrder = {
             _id: order._id,
             user: {
@@ -168,7 +160,6 @@ const getSingleOrder = async (req, res) => {
             })),
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
-            // Detailed status information
             statusDetails: {
                 currentStatus: order.status,
                 statusDisplay: getStatusDisplayName(order.status),
@@ -206,34 +197,28 @@ res.status(500).json({ error: error.message})
 }
 }
 
-// Create a specific function to update order status with timestamp tracking
 const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
         
-        // Validate status
         if (!status) {
             return res.status(400).json({ msg: "Status is required" });
         }
         
-        // Check if status is valid
         const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ msg: "Invalid status. Valid statuses are: pending, processing, shipped, delivered, cancelled" });
         }
         
-        // Find the order first to check current status
         const order = await Order.findById(req.params.id);
         if (!order) {
             return res.status(404).json({ msg: "Order not found" });
         }
         
-        // If status is the same, don't update
         if (order.status === status) {
             return res.status(200).json({ msg: "Status unchanged", order });
         }
         
-        // Update the order with new status and add to status history
         const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
             {
@@ -281,9 +266,8 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ msg: "Cart is empty" });
     }
 
-    // Calculate total amount (better version)
     const total = cart.items.reduce((sum, item) => {
-      return sum + item.quantity;   // or item.quantity * item.product.price
+      return sum + item.quantity;   
     }, 0);
 
     const order = await Order.create({
@@ -297,7 +281,6 @@ const createOrder = async (req, res) => {
       }]
     });
 
-    // clear cart
     cart.items = [];
     await cart.save();
 
