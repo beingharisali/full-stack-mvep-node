@@ -12,18 +12,35 @@ const getOrders = async (req, res ) => {
         const enhancedOrders = orders.map(order => ({
             _id: order._id,
             user: order.user,
-            items: order.items,
+            items: order.items.map(item => ({
+                _id: item.product._id,
+                product: item.product._id,
+                name: item.product.name,
+                price: item.product.price,
+                quantity: item.quantity,
+                images: item.product.images || []
+            })),
             totalAmount: order.totalAmount,
             status: order.status,
             statusHistory: order.statusHistory,
+            shippingAddress: order.shippingAddress,
+            paymentMethod: order.paymentMethod,
+            transactionId: order.transactionId,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
             statusInfo: {
                 currentStatus: order.status,
+                statusDisplay: getStatusDisplayName(order.status),
                 lastUpdated: order.statusHistory.length > 0 
                     ? order.statusHistory[order.statusHistory.length - 1].timestamp 
                     : order.createdAt,
-                totalStatusChanges: order.statusHistory.length
+                formattedLastUpdated: order.statusHistory.length > 0 
+                    ? new Date(order.statusHistory[order.statusHistory.length - 1].timestamp).toLocaleString()
+                    : new Date(order.createdAt).toLocaleString(),
+                totalStatusChanges: order.statusHistory.length,
+                isRecent: isRecentUpdate(order.updatedAt),
+                isFirstStatus: order.statusHistory.length === 1,
+                canBeCancelled: ['pending', 'processing'].includes(order.status)
             }
         }));
         
@@ -260,20 +277,51 @@ const deleteOrder = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user.userId });
-
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ msg: "Cart is empty" });
+    const { items, totalAmount, shippingAddress, paymentMethod, transactionId } = req.body;
+    
+    // Validate required fields
+    if (!items || items.length === 0) {
+      return res.status(400).json({ msg: "Order items are required" });
+    }
+    
+    if (!totalAmount) {
+      return res.status(400).json({ msg: "Total amount is required" });
+    }
+    
+    if (!shippingAddress) {
+      return res.status(400).json({ msg: "Shipping address is required" });
     }
 
-    const total = cart.items.reduce((sum, item) => {
-      return sum + item.quantity;   
+    // Calculate total from items to verify
+    const calculatedTotal = items.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
     }, 0);
+    
+    // Add shipping and tax
+    const shipping = 5.99;
+    const tax = calculatedTotal * 0.08;
+    const expectedTotal = calculatedTotal + shipping + tax;
+    
+    // Allow small floating point differences
+    if (Math.abs(totalAmount - expectedTotal) > 0.01) {
+      return res.status(400).json({ 
+        msg: "Total amount mismatch", 
+        expected: expectedTotal, 
+        provided: totalAmount 
+      });
+    }
 
     const order = await Order.create({
       user: req.user.userId,
-      items: cart.items,
-      totalAmount: total,
+      items: items.map(item => ({
+        product: item.product || item._id,
+        quantity: item.quantity
+      })),
+      totalAmount: totalAmount,
+      shippingAddress: shippingAddress,
+      paymentMethod: paymentMethod || 'card',
+      transactionId: transactionId || `TXN_${Date.now()}`,
+      status: 'pending',
       statusHistory: [{
         status: 'pending',
         timestamp: new Date(),
@@ -281,10 +329,33 @@ const createOrder = async (req, res) => {
       }]
     });
 
-    cart.items = [];
-    await cart.save();
+    // Populate the order with product details for response
+    const populatedOrder = await Order.findById(order._id)
+      .populate("items.product")
+      .populate("user", "firstName lastName email");
 
-    res.status(201).json(order);
+    // Transform the response to match frontend expectations
+    const responseOrder = {
+      _id: populatedOrder._id,
+      user: req.user.userId,
+      items: populatedOrder.items.map(item => ({
+        _id: item.product._id,
+        product: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        images: item.product.images || []
+      })),
+      totalAmount: populatedOrder.totalAmount,
+      shippingAddress: populatedOrder.shippingAddress,
+      paymentMethod: populatedOrder.paymentMethod,
+      status: populatedOrder.status,
+      transactionId: populatedOrder.transactionId,
+      createdAt: populatedOrder.createdAt,
+      updatedAt: populatedOrder.updatedAt
+    };
+
+    res.status(201).json(responseOrder);
 
   } catch (error) {
     res.status(500).json({ error: error.message });

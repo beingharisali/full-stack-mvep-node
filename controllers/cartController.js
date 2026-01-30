@@ -25,7 +25,26 @@ const addCart = async (req, res) => {
         }
 
         await cart.save();
-        res.status(200).json(cart);
+        
+        // Populate and transform the response
+        const populatedCart = await Cart.findById(cart._id).populate("items.product");
+        const transformedCart = {
+            _id: populatedCart._id,
+            user: populatedCart.user,
+            items: populatedCart.items.map(item => ({
+                _id: item.product?._id || item._id,
+                product: item.product,
+                quantity: item.quantity,
+                name: item.product?.name || '',
+                price: item.product?.price || 0,
+                images: item.product?.images || [],
+                stock: item.product?.stock || 0
+            })),
+            createdAt: populatedCart.createdAt,
+            updatedAt: populatedCart.updatedAt
+        };
+        
+        res.status(200).json(transformedCart);
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -42,7 +61,26 @@ const removeCart = async (req, res) => {
             item => item.product.toString() !== productId
         );
         await cart.save();
-        res.json(cart);
+        
+        // Populate and transform the response
+        const populatedCart = await Cart.findById(cart._id).populate("items.product");
+        const transformedCart = {
+            _id: populatedCart._id,
+            user: populatedCart.user,
+            items: populatedCart.items.map(item => ({
+                _id: item.product?._id || item._id,
+                product: item.product,
+                quantity: item.quantity,
+                name: item.product?.name || '',
+                price: item.product?.price || 0,
+                images: item.product?.images || [],
+                stock: item.product?.stock || 0
+            })),
+            createdAt: populatedCart.createdAt,
+            updatedAt: populatedCart.updatedAt
+        };
+        
+        res.json(transformedCart);
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -60,7 +98,26 @@ const updateCartItem = async (req, res) => {
 
         item.quantity = quantity;
         await cart.save();
-        res.json(cart);
+        
+        // Populate and transform the response
+        const populatedCart = await Cart.findById(cart._id).populate("items.product");
+        const transformedCart = {
+            _id: populatedCart._id,
+            user: populatedCart.user,
+            items: populatedCart.items.map(item => ({
+                _id: item.product?._id || item._id,
+                product: item.product,
+                quantity: item.quantity,
+                name: item.product?.name || '',
+                price: item.product?.price || 0,
+                images: item.product?.images || [],
+                stock: item.product?.stock || 0
+            })),
+            createdAt: populatedCart.createdAt,
+            updatedAt: populatedCart.updatedAt
+        };
+        
+        res.json(transformedCart);
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -81,14 +138,35 @@ const clearCart = async (req, res) => {
 };
 const getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({user: req.user.userId  })
+    const cart = await Cart.findOne({user: req.user.userId})
       .populate("items.product");
 
     if (!cart) {
-      return res.status(200).json({ items: [] });
+      return res.status(200).json({ 
+        _id: null,
+        user: req.user.userId,
+        items: []
+      });
     }
 
-    res.json(cart);
+    // Transform the cart data to ensure proper structure
+    const transformedCart = {
+      _id: cart._id,
+      user: cart.user,
+      items: cart.items.map(item => ({
+        _id: item.product?._id || item._id,
+        product: item.product,
+        quantity: item.quantity,
+        name: item.product?.name || '',
+        price: item.product?.price || 0,
+        images: item.product?.images || [],
+        stock: item.product?.stock || 0
+      })),
+      createdAt: cart.createdAt,
+      updatedAt: cart.updatedAt
+    };
+
+    res.json(transformedCart);
 
   } catch (error) {
     res.status(500).json({ error: error.message });

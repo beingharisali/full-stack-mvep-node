@@ -29,6 +29,18 @@ const statusHistorySchema = new mongoose.Schema({
     }
 })
 
+const shippingAddressSchema = new mongoose.Schema({
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    address: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    country: String
+});
+
 const orderSchema = new mongoose.Schema({
    user:{
     type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +51,18 @@ const orderSchema = new mongoose.Schema({
    totalAmount: {
     type: Number,
     required: true
+   },
+   shippingAddress: {
+    type: shippingAddressSchema,
+    required: true
+   },
+   paymentMethod: {
+    type: String,
+    enum: ["card", "paypal", "cash-on-delivery"],
+    default: "card"
+   },
+   transactionId: {
+    type: String
    },
    status: {
     type: String,
