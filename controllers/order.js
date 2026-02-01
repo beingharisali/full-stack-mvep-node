@@ -279,7 +279,6 @@ const createOrder = async (req, res) => {
   try {
     const { items, totalAmount, shippingAddress, paymentMethod, transactionId } = req.body;
     
-    // Validate required fields
     if (!items || items.length === 0) {
       return res.status(400).json({ msg: "Order items are required" });
     }
@@ -292,17 +291,14 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ msg: "Shipping address is required" });
     }
 
-    // Calculate total from items to verify
     const calculatedTotal = items.reduce((sum, item) => {
       return sum + (item.price * item.quantity);
     }, 0);
     
-    // Add shipping and tax
     const shipping = 5.99;
     const tax = calculatedTotal * 0.08;
     const expectedTotal = calculatedTotal + shipping + tax;
     
-    // Allow small floating point differences
     if (Math.abs(totalAmount - expectedTotal) > 0.01) {
       return res.status(400).json({ 
         msg: "Total amount mismatch", 
@@ -329,12 +325,10 @@ const createOrder = async (req, res) => {
       }]
     });
 
-    // Populate the order with product details for response
     const populatedOrder = await Order.findById(order._id)
       .populate("items.product")
       .populate("user", "firstName lastName email");
 
-    // Transform the response to match frontend expectations
     const responseOrder = {
       _id: populatedOrder._id,
       user: req.user.userId,
