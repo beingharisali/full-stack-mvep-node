@@ -26,7 +26,6 @@ const addCart = async (req, res) => {
 
         await cart.save();
         
-        // Populate and transform the response
         const populatedCart = await Cart.findById(cart._id).populate("items.product");
         const transformedCart = {
             _id: populatedCart._id,
@@ -62,7 +61,6 @@ const removeCart = async (req, res) => {
         );
         await cart.save();
         
-        // Populate and transform the response
         const populatedCart = await Cart.findById(cart._id).populate("items.product");
         const transformedCart = {
             _id: populatedCart._id,
@@ -99,7 +97,6 @@ const updateCartItem = async (req, res) => {
         item.quantity = quantity;
         await cart.save();
         
-        // Populate and transform the response
         const populatedCart = await Cart.findById(cart._id).populate("items.product");
         const transformedCart = {
             _id: populatedCart._id,
@@ -149,7 +146,6 @@ const getCart = async (req, res) => {
       });
     }
 
-    // Transform the cart data to ensure proper structure
     const transformedCart = {
       _id: cart._id,
       user: cart.user,
