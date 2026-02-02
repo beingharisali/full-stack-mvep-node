@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart")
 const User = require("../models/User");
+const Product = require("../models/Product");
 
 const getOrders = async (req, res ) => {
     try{
@@ -356,4 +357,80 @@ const createOrder = async (req, res) => {
   }
 };
 
-module.exports = {getOrders, getAllOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus}
+const getVendorOrders = async (req, res) => {
+  try {
+    const vendorProducts = await Product.find({ createdBy: req.user.userId });
+    const vendorProductIds = vendorProducts.map(product => product._id);
+    
+    if (vendorProductIds.length === 0) {
+      return res.json({
+        orders: [],
+        totalCount: 0,
+        statusSummary: {
+          pending: 0,
+          processing: 0,
+          shipped: 0,
+          delivered: 0,
+          cancelled: 0,
+          total: 0
+        }
+      });
+    }
+    
+    const orders = await Order.find({
+      "items.product": { $in: vendorProductIds }
+    })
+    .populate("items.product")
+    .populate("user", "firstName lastName email role")
+    .sort({ createdAt: -1 });
+    
+    const enhancedOrders = orders.map(order => ({
+      _id: order._id,
+      user: {
+        id: order.user._id,
+        name: `${order.user.firstName} ${order.user.lastName}`,
+        email: order.user.email,
+        role: order.user.role
+      },
+      items: order.items
+        .filter(item => vendorProductIds.includes(item.product._id))
+        .map(item => ({
+          product: {
+            id: item.product._id,
+            name: item.product.name,
+            price: item.product.price
+          },
+          quantity: item.quantity,
+          subtotal: item.quantity * item.product.price
+        })),
+      totalAmount: order.totalAmount,
+      status: order.status,
+      statusHistory: order.statusHistory.map(history => ({
+        status: history.status,
+        timestamp: history.timestamp,
+        updatedBy: history.updatedBy
+      })),
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      statusInfo: {
+        currentStatus: order.status,
+        statusDisplay: getStatusDisplayName(order.status),
+        lastUpdated: order.statusHistory.length > 0 
+          ? order.statusHistory[order.statusHistory.length - 1].timestamp 
+          : order.createdAt,
+        totalStatusChanges: order.statusHistory.length,
+        isRecent: isRecentUpdate(order.updatedAt)
+      }
+    }));
+    
+    res.json({
+      orders: enhancedOrders,
+      totalCount: enhancedOrders.length,
+      statusSummary: getStatusSummary(enhancedOrders)
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {getOrders, getAllOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus, getVendorOrders}
