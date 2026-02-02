@@ -233,6 +233,24 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ msg: "Order not found" });
         }
         
+       
+        if (status === 'cancelled' && req.user.role === 'customer') {
+            return res.status(403).json({ msg: "You are not authorized to cancel this order" });
+        }
+        
+        if (req.user.role === 'vendor' && status === 'cancelled') {
+            const vendorProducts = await Product.find({ createdBy: req.user.userId });
+            const vendorProductIds = vendorProducts.map(product => product._id);
+            
+            const hasVendorProducts = order.items.some(item => 
+                vendorProductIds.includes(item.product.toString())
+            );
+            
+            if (!hasVendorProducts) {
+                return res.status(403).json({ msg: "You are not authorized to cancel this order" });
+            }
+        }
+        
         if (order.status === status) {
             return res.status(200).json({ msg: "Status unchanged", order });
         }
@@ -433,4 +451,77 @@ const getVendorOrders = async (req, res) => {
   }
 };
 
-module.exports = {getOrders, getAllOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus, getVendorOrders}
+const getAllOrdersForAdminOrVendor = async (req, res) => {
+  try {
+    let orders;
+    
+    if (req.user.role === 'vendor') {
+      const vendorProducts = await Product.find({ createdBy: req.user.userId });
+      const vendorProductIds = vendorProducts.map(product => product._id);
+      
+      if (vendorProductIds.length === 0) {
+        orders = [];
+      } else {
+        orders = await Order.find({
+          "items.product": { $in: vendorProductIds }
+        })
+        .populate("items.product")
+        .populate("user", "firstName lastName email role")
+        .sort({ createdAt: -1 });
+      }
+    } else {
+      orders = await Order.find()
+        .populate("items.product")
+        .populate("user", "firstName lastName email role")
+        .sort({ createdAt: -1 });
+    }
+    
+    const enhancedOrders = orders.map(order => ({
+      _id: order._id,
+      user: {
+        id: order.user._id,
+        name: `${order.user.firstName} ${order.user.lastName}`,
+        email: order.user.email,
+        role: order.user.role
+      },
+      items: order.items.map(item => ({
+        product: {
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price
+        },
+        quantity: item.quantity,
+        subtotal: item.quantity * item.product.price
+      })),
+      totalAmount: order.totalAmount,
+      status: order.status,
+      statusHistory: order.statusHistory.map(history => ({
+        status: history.status,
+        timestamp: history.timestamp,
+        updatedBy: history.updatedBy
+      })),
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      statusInfo: {
+        currentStatus: order.status,
+        statusDisplay: getStatusDisplayName(order.status),
+        lastUpdated: order.statusHistory.length > 0 
+          ? order.statusHistory[order.statusHistory.length - 1].timestamp 
+          : order.createdAt,
+        totalStatusChanges: order.statusHistory.length,
+        isRecent: isRecentUpdate(order.updatedAt),
+        canBeCancelled: ['pending', 'processing'].includes(order.status)
+      }
+    }));
+    
+    res.json({
+      orders: enhancedOrders,
+      totalCount: enhancedOrders.length,
+      statusSummary: getStatusSummary(enhancedOrders)
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {getOrders, getAllOrders, getSingleOrder, updateOrder, deleteOrder, createOrder, updateOrderStatus, getVendorOrders, getAllOrdersForAdminOrVendor}
