@@ -23,4 +23,6 @@ router.post('/', authentication, createProduct);
 router.patch('/:id', authentication, updateProduct);
 router.delete('/:id', authentication, deleteProduct);
 
+router.get('/vendor', authentication, authorize('admin', 'vendor'), getAllProducts);
+
 module.exports = router;

@@ -1,6 +1,6 @@
 const Product = require('../models/Product');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, NotFoundError } = require('../errors');
+const { BadRequestError, NotFoundError, UnauthenticatedError } = require('../errors');
 
 const createProduct = async (req, res, next) => {
   try {
@@ -78,6 +78,8 @@ const createProduct = async (req, res, next) => {
     if (productData.price !== undefined) {
       productData.price = parseFloat(parseFloat(productData.price).toFixed(2));
     }
+    
+    productData.createdBy = req.user.userId;
 
     const product = await Product.create(productData);
     res.status(StatusCodes.CREATED).json({ product });
@@ -91,6 +93,10 @@ const getAllProducts = async (req, res, next) => {
     const { name, category, brand, minPrice, maxPrice, sort, fields, numericFilters } = req.query;
     
     const queryObject = {};
+
+    if (req.originalUrl.includes('/vendor') && req.user.role === 'vendor') {
+      queryObject.createdBy = req.user.userId;
+    }
 
     if (name) {
       queryObject.name = { $regex: name, $options: 'i' };
@@ -252,6 +258,13 @@ const updateProduct = async (req, res, next) => {
       throw new BadRequestError("Brand name can only contain letters, numbers, spaces, hyphens, and ampersands");
     }
     
+    if (req.user.role === 'vendor') {
+      const existingProduct = await Product.findOne({ _id: productId, createdBy: req.user.userId });
+      if (!existingProduct) {
+        throw new UnauthenticatedError("You are not authorized to update this product");
+      }
+    }
+    
     const updateData = { ...req.body };
     
     if (updateData.price !== undefined) {
@@ -276,9 +289,18 @@ const deleteProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
-    const product = await Product.findByIdAndDelete({ _id: productId });
-    if (!product) {
-      throw new NotFoundError(`No product with id: ${productId}`);
+    if (req.user.role === 'vendor') {
+      const product = await Product.findOne({ _id: productId, createdBy: req.user.userId });
+      if (!product) {
+        throw new UnauthenticatedError("You are not authorized to delete this product");
+      }
+      
+      await Product.deleteOne({ _id: productId });
+    } else {
+      const product = await Product.findByIdAndDelete({ _id: productId });
+      if (!product) {
+        throw new NotFoundError(`No product with id: ${productId}`);
+      }
     }
   
     res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
