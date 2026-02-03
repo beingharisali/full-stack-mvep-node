@@ -90,7 +90,7 @@ const createProduct = async (req, res, next) => {
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const { name, category, brand, minPrice, maxPrice, sort, fields, numericFilters } = req.query;
+    const { name, category, brand, minPrice, maxPrice, sort, fields, numericFilters, isActive } = req.query;
     
     const queryObject = {};
 
@@ -108,6 +108,11 @@ const getAllProducts = async (req, res, next) => {
     
     if (brand) {
       queryObject.brand = { $regex: brand, $options: 'i' };
+    }
+    
+    // Handle isActive filter - this is the key addition
+    if (isActive !== undefined) {
+      queryObject.isActive = isActive === 'true' || isActive === true;
     }
     
     if (minPrice || maxPrice) {
@@ -197,7 +202,7 @@ const getSingleProduct = async (req, res, next) => {
 const updateProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
-    const { name, price, stock, images, description, category, brand } = req.body;
+    const { name, price, stock, images, description, category, brand, isActive } = req.body;
     
     if (name && name.length > 200) {
       throw new BadRequestError("Product name cannot exceed 200 characters");
@@ -269,6 +274,11 @@ const updateProduct = async (req, res, next) => {
     
     if (updateData.price !== undefined) {
       updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
+    }
+    
+    // Ensure isActive is properly handled as boolean
+    if (updateData.isActive !== undefined) {
+      updateData.isActive = Boolean(updateData.isActive);
     }
     
     const product = await Product.findByIdAndUpdate({ _id: productId }, updateData, {
