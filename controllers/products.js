@@ -90,7 +90,7 @@ const createProduct = async (req, res, next) => {
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const { name, category, brand, minPrice, maxPrice, sort, fields, numericFilters, isActive } = req.query;
+    const { name, category, brand, minPrice, maxPrice, minStock, maxStock, sort, fields, numericFilters, isActive } = req.query;
     
     const queryObject = {};
 
@@ -110,10 +110,12 @@ const getAllProducts = async (req, res, next) => {
       queryObject.brand = { $regex: brand, $options: 'i' };
     }
     
+    // Handle isActive filter
     if (isActive !== undefined) {
       queryObject.isActive = isActive === 'true' || isActive === true;
     }
     
+    // Handle price filters
     if (minPrice || maxPrice) {
       queryObject.price = {};
       if (minPrice) {
@@ -123,9 +125,21 @@ const getAllProducts = async (req, res, next) => {
         queryObject.price.$lte = Number(maxPrice);
       }
     }
+    
+    // Handle stock filters
+    if (minStock || maxStock) {
+      queryObject.stock = {};
+      if (minStock) {
+        queryObject.stock.$gte = Number(minStock);
+      }
+      if (maxStock) {
+        queryObject.stock.$lte = Number(maxStock);
+      }
+    }
 
     let result = Product.find(queryObject);
 
+    // Handle numericFilters for backward compatibility
     if (numericFilters) {
       const operatorMap = {
         '>': '$gt',
@@ -149,10 +163,13 @@ const getAllProducts = async (req, res, next) => {
       });
     }
 
+    // Handle sorting - this is the key fix
     if (sort) {
+      console.log('Sorting by:', sort); // Debug log
       const sortList = sort.split(',').join(' ');
       result = result.sort(sortList);
     } else {
+      console.log('Default sorting by createdAt descending');
       result = result.sort('-createdAt');
     }
 
