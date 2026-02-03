@@ -110,12 +110,10 @@ const getAllProducts = async (req, res, next) => {
       queryObject.brand = { $regex: brand, $options: 'i' };
     }
     
-    // Handle isActive filter
     if (isActive !== undefined) {
       queryObject.isActive = isActive === 'true' || isActive === true;
     }
     
-    // Handle price filters
     if (minPrice || maxPrice) {
       queryObject.price = {};
       if (minPrice) {
@@ -126,7 +124,6 @@ const getAllProducts = async (req, res, next) => {
       }
     }
     
-    // Handle stock filters
     if (minStock || maxStock) {
       queryObject.stock = {};
       if (minStock) {
@@ -139,7 +136,6 @@ const getAllProducts = async (req, res, next) => {
 
     let result = Product.find(queryObject);
 
-    // Handle numericFilters for backward compatibility
     if (numericFilters) {
       const operatorMap = {
         '>': '$gt',
@@ -163,9 +159,8 @@ const getAllProducts = async (req, res, next) => {
       });
     }
 
-    // Handle sorting - this is the key fix
     if (sort) {
-      console.log('Sorting by:', sort); // Debug log
+      console.log('Sorting by:', sort); 
       const sortList = sort.split(',').join(' ');
       result = result.sort(sortList);
     } else {
