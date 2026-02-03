@@ -58,11 +58,15 @@ const orderSchema = new mongoose.Schema({
    },
    paymentMethod: {
     type: String,
-    enum: ["card", "paypal", "cash-on-delivery"],
+    enum: ["card", "stripe", "braintree", "paypal", "cash-on-delivery"],
     default: "card"
    },
    transactionId: {
     type: String
+   },
+   paymentMetadata: {
+    type: Map,
+    of: String
    },
    status: {
     type: String,
