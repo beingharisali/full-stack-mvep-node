@@ -110,12 +110,10 @@ const getAllProducts = async (req, res, next) => {
       queryObject.brand = { $regex: brand, $options: 'i' };
     }
     
-    // Handle isActive filter
     if (isActive !== undefined) {
       queryObject.isActive = isActive === 'true' || isActive === true;
     }
     
-    // Handle price filters
     if (minPrice || maxPrice) {
       queryObject.price = {};
       if (minPrice) {
@@ -126,7 +124,6 @@ const getAllProducts = async (req, res, next) => {
       }
     }
     
-    // Handle stock filters
     if (minStock || maxStock) {
       queryObject.stock = {};
       if (minStock) {
@@ -139,7 +136,6 @@ const getAllProducts = async (req, res, next) => {
 
     let result = Product.find(queryObject);
 
-    // Handle numericFilters for backward compatibility
     if (numericFilters) {
       const operatorMap = {
         '>': '$gt',
@@ -163,9 +159,8 @@ const getAllProducts = async (req, res, next) => {
       });
     }
 
-    // Handle sorting - this is the key fix
     if (sort) {
-      console.log('Sorting by:', sort); // Debug log
+      console.log('Sorting by:', sort);
       const sortList = sort.split(',').join(' ');
       result = result.sort(sortList);
     } else {
@@ -279,16 +274,13 @@ const updateProduct = async (req, res, next) => {
       throw new BadRequestError("Brand name can only contain letters, numbers, spaces, hyphens, and ampersands");
     }
     
-    // Allow vendors to edit all products, but maintain security for other roles
     if (req.user.role === 'vendor') {
-      // Vendor can edit any product
       const updateData = { ...req.body };
       
       if (updateData.price !== undefined) {
         updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
       }
       
-      // Ensure isActive is properly handled as boolean
       if (updateData.isActive !== undefined) {
         updateData.isActive = Boolean(updateData.isActive);
       }
@@ -303,14 +295,12 @@ const updateProduct = async (req, res, next) => {
     
       res.status(StatusCodes.OK).json({ product });
     } else if (req.user.role === 'admin') {
-      // Admin can edit any product
       const updateData = { ...req.body };
       
       if (updateData.price !== undefined) {
         updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
       }
       
-      // Ensure isActive is properly handled as boolean
       if (updateData.isActive !== undefined) {
         updateData.isActive = Boolean(updateData.isActive);
       }
@@ -325,7 +315,6 @@ const updateProduct = async (req, res, next) => {
     
       res.status(StatusCodes.OK).json({ product });
     } else {
-      // Regular users (customers) should not be able to edit products
       throw new UnauthenticatedError("You are not authorized to update this product");
     }
   } catch (error) {
@@ -337,9 +326,7 @@ const deleteProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
-    // Allow vendors to delete all products, but maintain security for other roles
     if (req.user.role === 'vendor') {
-      // Vendor can delete any product
       const product = await Product.findByIdAndDelete({ _id: productId });
       if (!product) {
         throw new NotFoundError(`No product with id: ${productId}`);
@@ -347,7 +334,6 @@ const deleteProduct = async (req, res, next) => {
     
       res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
     } else if (req.user.role === 'admin') {
-      // Admin can delete any product
       const product = await Product.findByIdAndDelete({ _id: productId });
       if (!product) {
         throw new NotFoundError(`No product with id: ${productId}`);
@@ -355,7 +341,6 @@ const deleteProduct = async (req, res, next) => {
     
       res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
     } else {
-      // Regular users (customers) should not be able to delete products
       throw new UnauthenticatedError("You are not authorized to delete this product");
     }
   } catch (error) {
