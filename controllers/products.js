@@ -279,32 +279,55 @@ const updateProduct = async (req, res, next) => {
       throw new BadRequestError("Brand name can only contain letters, numbers, spaces, hyphens, and ampersands");
     }
     
+    // Allow vendors to edit all products, but maintain security for other roles
     if (req.user.role === 'vendor') {
-      const existingProduct = await Product.findOne({ _id: productId, createdBy: req.user.userId });
-      if (!existingProduct) {
-        throw new UnauthenticatedError("You are not authorized to update this product");
+      // Vendor can edit any product
+      const updateData = { ...req.body };
+      
+      if (updateData.price !== undefined) {
+        updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
       }
-    }
+      
+      // Ensure isActive is properly handled as boolean
+      if (updateData.isActive !== undefined) {
+        updateData.isActive = Boolean(updateData.isActive);
+      }
+      
+      const product = await Product.findByIdAndUpdate({ _id: productId }, updateData, {
+        new: true,
+        runValidators: true,
+      });
+      if (!product) {
+        throw new NotFoundError(`No product with id: ${productId}`);
+      }
     
-    const updateData = { ...req.body };
+      res.status(StatusCodes.OK).json({ product });
+    } else if (req.user.role === 'admin') {
+      // Admin can edit any product
+      const updateData = { ...req.body };
+      
+      if (updateData.price !== undefined) {
+        updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
+      }
+      
+      // Ensure isActive is properly handled as boolean
+      if (updateData.isActive !== undefined) {
+        updateData.isActive = Boolean(updateData.isActive);
+      }
+      
+      const product = await Product.findByIdAndUpdate({ _id: productId }, updateData, {
+        new: true,
+        runValidators: true,
+      });
+      if (!product) {
+        throw new NotFoundError(`No product with id: ${productId}`);
+      }
     
-    if (updateData.price !== undefined) {
-      updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
+      res.status(StatusCodes.OK).json({ product });
+    } else {
+      // Regular users (customers) should not be able to edit products
+      throw new UnauthenticatedError("You are not authorized to update this product");
     }
-    
-    if (updateData.isActive !== undefined) {
-      updateData.isActive = Boolean(updateData.isActive);
-    }
-    
-    const product = await Product.findByIdAndUpdate({ _id: productId }, updateData, {
-      new: true,
-      runValidators: true,
-    });
-    if (!product) {
-      throw new NotFoundError(`No product with id: ${productId}`);
-    }
-  
-    res.status(StatusCodes.OK).json({ product });
   } catch (error) {
     next(error);
   }
@@ -314,21 +337,27 @@ const deleteProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
   
+    // Allow vendors to delete all products, but maintain security for other roles
     if (req.user.role === 'vendor') {
-      const product = await Product.findOne({ _id: productId, createdBy: req.user.userId });
-      if (!product) {
-        throw new UnauthenticatedError("You are not authorized to delete this product");
-      }
-      
-      await Product.deleteOne({ _id: productId });
-    } else {
+      // Vendor can delete any product
       const product = await Product.findByIdAndDelete({ _id: productId });
       if (!product) {
         throw new NotFoundError(`No product with id: ${productId}`);
       }
+    
+      res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
+    } else if (req.user.role === 'admin') {
+      // Admin can delete any product
+      const product = await Product.findByIdAndDelete({ _id: productId });
+      if (!product) {
+        throw new NotFoundError(`No product with id: ${productId}`);
+      }
+    
+      res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
+    } else {
+      // Regular users (customers) should not be able to delete products
+      throw new UnauthenticatedError("You are not authorized to delete this product");
     }
-  
-    res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
   } catch (error) {
     next(error);
   }
