@@ -94,8 +94,16 @@ const getAllProducts = async (req, res, next) => {
     
     const queryObject = {};
 
-    if (req.originalUrl.includes('/vendor') && req.user.role === 'vendor') {
+    if (req.originalUrl.includes('/vendor') && req.user?.role === 'vendor') {
       queryObject.createdBy = req.user.userId;
+    }
+
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'vendor')) {
+      queryObject.isActive = true;
+    } else {
+      if (isActive !== undefined) {
+        queryObject.isActive = isActive === 'true' || isActive === true;
+      }
     }
 
     if (name) {
@@ -108,10 +116,6 @@ const getAllProducts = async (req, res, next) => {
     
     if (brand) {
       queryObject.brand = { $regex: brand, $options: 'i' };
-    }
-    
-    if (isActive !== undefined) {
-      queryObject.isActive = isActive === 'true' || isActive === true;
     }
     
     if (minPrice || maxPrice) {
