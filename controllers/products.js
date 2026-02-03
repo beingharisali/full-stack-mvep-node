@@ -110,7 +110,6 @@ const getAllProducts = async (req, res, next) => {
       queryObject.brand = { $regex: brand, $options: 'i' };
     }
     
-    // Handle isActive filter - this is the key addition
     if (isActive !== undefined) {
       queryObject.isActive = isActive === 'true' || isActive === true;
     }
@@ -276,7 +275,6 @@ const updateProduct = async (req, res, next) => {
       updateData.price = parseFloat(parseFloat(updateData.price).toFixed(2));
     }
     
-    // Ensure isActive is properly handled as boolean
     if (updateData.isActive !== undefined) {
       updateData.isActive = Boolean(updateData.isActive);
     }

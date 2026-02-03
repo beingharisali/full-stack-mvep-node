@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { register, login } = require('../controllers/auth')
+const { register, login } = require('../controllers/auth')  
 const auth = require('../middleware/authentication')
 const authorize = require('../middleware/authrize')
 
@@ -25,4 +25,5 @@ router.get("/vendor", auth, authorize("vendor"), (req, res) => {
 router.get("/customer", auth, authorize("customer"), (req, res) => {
   res.json({ msg: "Welcome Customer" });
 });
+
 module.exports = router
