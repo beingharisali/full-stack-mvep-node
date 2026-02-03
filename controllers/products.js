@@ -160,7 +160,7 @@ const getAllProducts = async (req, res, next) => {
     }
 
     if (sort) {
-      console.log('Sorting by:', sort);
+      console.log('Sorting by:', sort); 
       const sortList = sort.split(',').join(' ');
       result = result.sort(sortList);
     } else {
