@@ -1,6 +1,6 @@
-# Express Backend with MongoDB
+# MVEP E-commerce Backend with Strapi Payment Integration
 
-This is a complete Express.js backend with MongoDB connection using Mongoose.
+This is a complete Express.js backend with MongoDB connection using Mongoose, featuring comprehensive payment processing integration with Stripe, Braintree, and PayPal.
 
 ## Setup
 
@@ -34,6 +34,14 @@ JWT_LIFETIME=1d
 - Role-based user system (Admin, Vendor, Customer)
 - Profile fields specific to each role
 - Product model with name, price, stock, and images fields
+- **Payment Processing**:
+  - Stripe integration for credit/debit cards
+  - Braintree integration for card payments
+  - PayPal integration through Braintree
+  - Cash on Delivery option
+- Order management with status tracking
+- Shopping cart functionality
+- Analytics dashboard with sales data
 
 ## API Routes
 
