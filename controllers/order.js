@@ -10,10 +10,12 @@ const getOrders = async (req, res ) => {
             .populate("user", "firstName lastName email")
             .sort({ createdAt: -1 });
         
-        const enhancedOrders = orders.map(order => ({
+        const enhancedOrders = orders .map(order => ({
             _id: order._id,
             user: order.user,
-            items: order.items.map(item => ({
+           items: order.items
+    .filter(item => item.product) 
+    .map(item => ({
                 _id: item.product._id,
                 product: item.product._id,
                 name: item.product.name,
@@ -66,7 +68,9 @@ const getAllOrders = async (req, res) => {
                 email: order.user.email,
                 role: order.user.role
             },
-            items: order.items.map(item => ({
+          items: order.items
+    .filter(item => item.product) 
+    .map(item => ({
                 product: {
                     id: item.product._id,
                     name: item.product.name,
@@ -157,7 +161,9 @@ const getSingleOrder = async (req, res) => {
                 name: `${order.user.firstName} ${order.user.lastName}`,
                 email: order.user.email
             },
-            items: order.items.map(item => ({
+           items: order.items
+    .filter(item => item.product)
+    .map(item => ({
                 product: {
                     id: item.product._id,
                     name: item.product.name,
@@ -328,7 +334,9 @@ const createOrder = async (req, res) => {
 
     const order = await Order.create({
       user: req.user.userId,
-      items: items.map(item => ({
+      items: order.items
+    .filter(item => item.product) 
+    .map(item => ({
         product: item.product || item._id,
         quantity: item.quantity
       })),
@@ -484,7 +492,10 @@ const getAllOrdersForAdminOrVendor = async (req, res) => {
         email: order.user.email,
         role: order.user.role
       },
-      items: order.items.map(item => ({
+      
+       items: order.items
+    .filter(item => item.product && vendorProductIds.includes(item.product._id)) // filter added
+    .map(item => ({
         product: {
           id: item.product._id,
           name: item.product.name,
