@@ -33,6 +33,7 @@ const dailySales = require('./routes/dailySales')
 const weeklyRevenue = require('./routes/weeklyRevenue')
 const topProducts = require ('./routes/topProduct')
 const paymentRouter = require('./routes/payment')
+const adminUsersRoutes = require("./routes/adminUser");
 app.use(cors());
 app.use(express.json());
 
@@ -48,6 +49,10 @@ app.use("/api/v1", dailySales)
 app.use('/api/v1', weeklyRevenue)
 app.use('/api/v1', topProducts)
 app.use("/api/v1/payment", paymentRouter)
+
+
+app.use("/api/v1/admin", adminUsersRoutes);
+
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
