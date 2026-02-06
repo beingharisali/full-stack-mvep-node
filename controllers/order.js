@@ -494,7 +494,7 @@ const getAllOrdersForAdminOrVendor = async (req, res) => {
       },
       
        items: order.items
-    .filter(item => item.product && vendorProductIds.includes(item.product._id)) // filter added
+    .filter(item => item.product && vendorProductIds.includes(item.product._id)) 
     .map(item => ({
         product: {
           id: item.product._id,

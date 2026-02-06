@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
 
-// GET users (vendor / customer)
 const getAllUsers = async (req, res) => {
   const { role } = req.query;
 
@@ -12,7 +11,6 @@ const getAllUsers = async (req, res) => {
   res.status(StatusCodes.OK).json(users);
 };
 
-// DELETE user
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
