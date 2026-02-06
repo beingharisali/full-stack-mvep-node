@@ -8,7 +8,6 @@ const {
   deleteUser,
 } = require("../controllers/adminUser");
 
-// admin  get users
 router.get(
   "/users",
   auth,
@@ -16,7 +15,6 @@ router.get(
   getAllUsers
 );
 
-// admin  delete user
 router.delete(
   "/users/:id",
   auth,
