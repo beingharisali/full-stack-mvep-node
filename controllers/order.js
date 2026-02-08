@@ -356,7 +356,11 @@ const createOrder = async (req, res) => {
 
     const responseOrder = {
       _id: populatedOrder._id,
-      user: req.user.userId,
+      user: {
+        id: populatedOrder.user._id,
+        name: `${populatedOrder.user.firstName} ${populatedOrder.user.lastName}`,
+        email: populatedOrder.user.email
+      },
       items: populatedOrder.items.map(item => ({
         _id: item.product._id,
         product: item.product._id,
