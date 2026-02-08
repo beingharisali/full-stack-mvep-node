@@ -334,9 +334,7 @@ const createOrder = async (req, res) => {
 
     const order = await Order.create({
       user: req.user.userId,
-      items: order.items
-    .filter(item => item.product) 
-    .map(item => ({
+      items: items.map(item => ({
         product: item.product || item._id,
         quantity: item.quantity
       })),
@@ -358,7 +356,11 @@ const createOrder = async (req, res) => {
 
     const responseOrder = {
       _id: populatedOrder._id,
-      user: req.user.userId,
+      user: {
+        id: populatedOrder.user._id,
+        name: `${populatedOrder.user.firstName} ${populatedOrder.user.lastName}`,
+        email: populatedOrder.user.email
+      },
       items: populatedOrder.items.map(item => ({
         _id: item.product._id,
         product: item.product._id,
@@ -486,24 +488,23 @@ const getAllOrdersForAdminOrVendor = async (req, res) => {
     
     const enhancedOrders = orders.map(order => ({
       _id: order._id,
-      user: {
+      user: order.user ? {
         id: order.user._id,
         name: `${order.user.firstName} ${order.user.lastName}`,
         email: order.user.email,
         role: order.user.role
-      },
-      
-       items: order.items
-    .filter(item => item.product && vendorProductIds.includes(item.product._id)) 
-    .map(item => ({
-        product: {
-          id: item.product._id,
-          name: item.product.name,
-          price: item.product.price
-        },
-        quantity: item.quantity,
-        subtotal: item.quantity * item.product.price
-      })),
+      } : null,
+      items: order.items
+        .filter(item => item.product)
+        .map(item => ({
+          product: {
+            id: item.product._id,
+            name: item.product.name,
+            price: item.product.price
+          },
+          quantity: item.quantity,
+          subtotal: item.quantity * item.product.price
+        })),
       totalAmount: order.totalAmount,
       status: order.status,
       statusHistory: order.statusHistory.map(history => ({
