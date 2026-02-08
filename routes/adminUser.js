@@ -5,6 +5,9 @@ const authorize = require("../middleware/authrize");
 
 const {
   getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
   deleteUser,
 } = require("../controllers/adminUser");
 
@@ -13,6 +16,27 @@ router.get(
   auth,
   authorize("admin"),
   getAllUsers
+);
+
+router.get(
+  "/users/:id",
+  auth,
+  authorize("admin"),
+  getUserById
+);
+
+router.post(
+  "/users",
+  auth,
+  authorize("admin"),
+  createUser
+);
+
+router.put(
+  "/users/:id",
+  auth,
+  authorize("admin"),
+  updateUser
 );
 
 router.delete(

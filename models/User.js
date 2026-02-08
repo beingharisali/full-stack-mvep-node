@@ -43,6 +43,7 @@ UserSchema.methods.createJWT = function () {
             firstName: this.firstName,
             lastName: this.lastName,
             role: this.role,
+            email: this.email,
             profile: this.profile
         },
         process.env.JWT_SECRET,
