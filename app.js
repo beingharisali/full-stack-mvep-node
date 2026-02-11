@@ -1,4 +1,4 @@
-require("express-async-errors");   
+require("express-async-errors"); 
 require("dotenv").config({ path: "./.env" });
 
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'JWT_LIFETIME', 'PORT'];
@@ -18,6 +18,7 @@ const xss = require("xss-clean");
 const rateLimiter = require("express-rate-limit");
 
 const connectDB = require("./db/connect");
+const auth = require('./middleware/authentication');
 
 const authRouter = require('./routes/auth');
 const productsRouter = require('./routes/products');
@@ -34,6 +35,9 @@ const weeklyRevenue = require('./routes/weeklyRevenue')
 const topProducts = require ('./routes/topProduct')
 const paymentRouter = require('./routes/payment')
 const adminUsersRoutes = require("./routes/adminUser");
+const chatRoutes = require('./routes/chat');
+const messageRoutes = require('./routes/message');
+const userRoutes = require('./routes/user');
 app.use(cors());
 app.use(express.json());
 
@@ -52,6 +56,9 @@ app.use("/api/v1/payment", paymentRouter)
 
 
 app.use("/api/v1/admin", adminUsersRoutes);
+app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/message", messageRoutes);
+app.use("/api/v1/users", userRoutes);
 
 app.use(
   rateLimiter({
@@ -69,8 +76,6 @@ app.get("/", (req, res) => {
     msg: "API working",
   });
 });
-
-const auth = require('./middleware/authentication');
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
