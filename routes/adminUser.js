@@ -3,6 +3,8 @@ const router = express.Router();
 const auth = require("../middleware/authentication");
 const authorize = require("../middleware/authrize");
 
+console.log("testing");
+
 const {
   getAllUsers,
   getUserById,
